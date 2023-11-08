@@ -5,7 +5,6 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
-const bcrypt = require("bcryptjs");
 const { error } = require('console');
 const Team = require('./models/Team.js');
 
@@ -53,10 +52,9 @@ app.get("/", (req, res) => {
 
 // Create a sign-up route
 app.post('/signup', async (req, res) => {
-    const { TEAM_NAME, TEAM_MAIL, PASSWORD } = req.body; // Assuming you're sending these values in the request body
-    const encryptedPassword = await bcrypt.hash(PASSWORD, 27);
 
     try {
+        const { TEAM_NAME, TEAM_MAIL, PASSWORD } = req.body; // Assuming you're sending these values in the request body
         // Check if TEAM_NAME or TEAM_MAIL already exist
         const existingTeamByName = await Team.findOne({ TEAM_NAME });
         const existingTeamByMail = await Team.findOne({ TEAM_MAIL });
@@ -75,7 +73,7 @@ app.post('/signup', async (req, res) => {
         const newTeam = new Team({
             TEAM_NAME,
             TEAM_MAIL,
-            PASSWORD: encryptedPassword,
+            PASSWORD,
         });
 
         // Save the new team to the database
