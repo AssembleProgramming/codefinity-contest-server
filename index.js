@@ -24,6 +24,22 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000; // Use a default value (e.g., 3000) if PORT is not set in .env
 const MONGODB_URI = process.env.MONGODB_URI;
 
+
+/** ======================================================================
+ * ?                    MongoDB connection
+====================================================================== */
+// Mongodb connection
+mongoose.connect(MONGODB_URI);
+
+// Check if the connection is successful
+mongoose.connection.on('connected', () => {
+    console.log('Connected to MongoDB Atlas');
+});
+
+mongoose.connection.on('error', (err) => {
+    console.error('Error connecting to MongoDB Atlas:', err.message);
+});
+
 /** ======================================================================
  * ?                    Routes
 ====================================================================== */
@@ -38,7 +54,7 @@ app.get("/", (req, res) => {
 app.post('/signup', async (req, res) => {
     try {
         const { TEAM_NAME, TEAM_MAIL, PASSWORD } = req.body; // Assuming you're sending these values in the request body
-
+        console.log(TEAM_NAME);
         // Check if TEAM_NAME or TEAM_MAIL already exist
         const existingTeamByName = await Team.findOne({ TEAM_NAME });
         const existingTeamByMail = await Team.findOne({ TEAM_MAIL });
@@ -70,21 +86,19 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-/** ======================================================================
- * ?                    MongoDB connection
-====================================================================== */
-// Mongodb connection
-mongoose.connect(MONGODB_URI);
+// Define a route to get data where Registered is false
+app.get('/get-unregistered-teams', async (req, res) => {
+    try {
+        // Find all teams where Registered is false
+        const unregisteredTeams = await Team.find({ Registered: false });
 
-// Check if the connection is successful
-mongoose.connection.on('connected', () => {
-    console.log('Connected to MongoDB Atlas');
+        // Send the unregistered teams as JSON response
+        res.json({ unregisteredTeams });
+    } catch (error) {
+        console.error('Error fetching unregistered teams:', error);
+        res.status(500).json({ message: 'Failed to fetch unregistered teams', error: error.message });
+    }
 });
-
-mongoose.connection.on('error', (err) => {
-    console.error('Error connecting to MongoDB Atlas:', err.message);
-});
-
 
 /** ======================================================================
  * ?                    Run the server
