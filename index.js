@@ -61,12 +61,12 @@ app.post('/signup', async (req, res) => {
 
         if (existingTeamByName) {
             // Team with the same TEAM_NAME already exists
-            return res.status(400).json({ message: 'TEAM_NAME already exists' });
+            return res.status(400).json({ message: 'An account with the provided TEAM_NAME already exists.' });
         }
 
         if (existingTeamByMail) {
             // Team with the same TEAM_MAIL already exists
-            return res.status(400).json({ message: 'TEAM_MAIL already has an account' });
+            return res.status(400).json({ message: 'An account with the provided TEAM_EMAIL already exists.' });
         }
 
         // Create a new Team document
