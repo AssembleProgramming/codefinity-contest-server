@@ -1,46 +1,78 @@
-/**
- * IMPORTS
- */
+/** ======================================================================
+ * ?                            IMPORTS
+====================================================================== */
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const { error } = require('console');
+const Team = require('./models/Team.js');
 
-/**
- * SERVICES
- */
+/** ======================================================================
+ * ?                    Services & Configuration
+====================================================================== */
 const app = express();
-
 // Load environment variables from .env
 dotenv.config();
 
 app.use(cors());
 app.use(express.json());
 
-/**
- * DOTENV
- */
+/** ======================================================================
+ * ?                    Environment Variables
+====================================================================== */
 const PORT = process.env.PORT || 3000; // Use a default value (e.g., 3000) if PORT is not set in .env
 const MONGODB_URI = process.env.MONGODB_URI;
 
-/**
- * Routes
- */
+/** ======================================================================
+ * ?                    Routes
+====================================================================== */
+// Test route
 app.get("/", (req, res) => {
     res.json({
         "running": true
     });
 });
-app.get("/data", (req, res) => {
-    res.json({
-        "hi": "hello"
-    });
+
+// Create a sign-up route
+app.post('/signup', async (req, res) => {
+    try {
+        const { TEAM_NAME, TEAM_MAIL, PASSWORD } = req.body; // Assuming you're sending these values in the request body
+
+        // Check if TEAM_NAME or TEAM_MAIL already exist
+        const existingTeamByName = await Team.findOne({ TEAM_NAME });
+        const existingTeamByMail = await Team.findOne({ TEAM_MAIL });
+
+        if (existingTeamByName) {
+            // Team with the same TEAM_NAME already exists
+            return res.status(400).json({ message: 'TEAM_NAME already exists' });
+        }
+
+        if (existingTeamByMail) {
+            // Team with the same TEAM_MAIL already exists
+            return res.status(400).json({ message: 'TEAM_MAIL already has an account' });
+        }
+
+        // Create a new Team document
+        const newTeam = new Team({
+            TEAM_NAME,
+            TEAM_MAIL,
+            PASSWORD,
+        });
+
+        // Save the new team to the database
+        const savedTeam = await newTeam.save();
+
+        res.status(201).json({ message: 'Team registered successfully', team: savedTeam });
+    } catch (error) {
+        console.error('Team registration error:', error);
+        res.status(500).json({ message: 'Team registration failed', error: error.message });
+    }
 });
 
-/**
- * Start
- */
+/** ======================================================================
+ * ?                    MongoDB connection
+====================================================================== */
 // Mongodb connection
 mongoose.connect(MONGODB_URI);
 
@@ -53,6 +85,10 @@ mongoose.connection.on('error', (err) => {
     console.error('Error connecting to MongoDB Atlas:', err.message);
 });
 
+
+/** ======================================================================
+ * ?                    Run the server
+====================================================================== */
 app.listen(PORT, () => {
     console.log(`Server is Running on PORT ${PORT}`);
 });
