@@ -125,6 +125,23 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// get user data through jwt token
+app.post("/getuserdata", async (req, res) => {
+    try {
+        const { token } = req.body; // Corrected: use req.body.token
+        const team = jwt.verify(token, JWT_SECRET);
+        const teamName = team.TEAM_NAME;
+        Team.findOne({
+            TEAM_NAME: teamName
+        }).then((data) => {
+            res.status(200).json({ team: data });
+        }).catch(error => {
+            res.status(500).json({ error: error.message });
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Login failed', error: error.message });
+    }
+});
 
 // Define a route to get data where Registered is false
 app.get('/get-unregistered-teams', async (req, res) => {
