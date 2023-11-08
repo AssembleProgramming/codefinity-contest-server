@@ -128,20 +128,27 @@ app.post('/login', async (req, res) => {
 // get user data through jwt token
 app.post("/getuserdata", async (req, res) => {
     try {
-        const { token } = req.body; // Corrected: use req.body.token
-        const team = jwt.verify(token, JWT_SECRET);
-        const teamName = team.TEAM_NAME;
-        Team.findOne({
-            TEAM_NAME: teamName
-        }).then((data) => {
-            res.status(200).json({ team: data });
-        }).catch(error => {
-            res.status(500).json({ error: error.message });
-        });
+        const { token } = req.body;
+
+        // Verify and decode the JWT token
+        const decodedToken = jwt.verify(token, JWT_SECRET);
+
+        // Assuming that TEAM_NAME is stored in the decoded token
+        const teamName = decodedToken.TEAM_NAME;
+
+        // Use async/await for database operations to simplify the code
+        const teamData = await Team.findOne({ TEAM_NAME: teamName });
+
+        if (!teamData) {
+            res.status(404).json({ message: 'Team not found' });
+        } else {
+            res.status(200).json({ team: teamData });
+        }
     } catch (error) {
-        res.status(500).json({ message: 'Login failed', error: error.message });
+        res.status(500).json({ message: 'An error occurred', error: error.message });
     }
 });
+
 
 // Define a route to get data where Registered is false
 app.get('/get-unregistered-teams', async (req, res) => {
