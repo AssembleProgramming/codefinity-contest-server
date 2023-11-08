@@ -93,6 +93,7 @@ app.post('/signup', async (req, res) => {
 app.post('/login', async (req, res) => {
     try {
         const { TEAM_MAIL, PASSWORD } = req.body;
+        clg
         // Find the team by TEAM_MAIL
         const existingTeam = await Team.findOne({ TEAM_MAIL });
 
@@ -107,15 +108,8 @@ app.post('/login', async (req, res) => {
         }
 
         // If credentials are valid, generate a JWT
-        const token = jwt.sign({}, JWT_SECRET, {
+        const token = jwt.sign({ TEAM_MAIL: existingTeam.TEAM_MAIL }, JWT_SECRET, {
             expiresIn: '30d', // Token expiration time
-        });
-
-        // Set the JWT in an HTTP-only cookie
-        res.cookie('access_token', token, {
-            httpOnly: true,
-            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days (in milliseconds)
-            secure: true, // Enable this on HTTPS
         });
 
         res.status(200).json({ message: 'Login successful', team: token });
@@ -132,7 +126,7 @@ app.post("/getuserdata", async (req, res) => {
 
         // Verify and decode the JWT token
         const decodedToken = jwt.verify(token, JWT_SECRET);
-        
+
         // Assuming that TEAM_NAME is stored in the decoded token
         const teamMail = decodedToken.TEAM_MAIL;
 
