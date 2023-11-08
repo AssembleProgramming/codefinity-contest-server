@@ -93,7 +93,6 @@ app.post('/signup', async (req, res) => {
 app.post('/login', async (req, res) => {
     try {
         const { TEAM_MAIL, PASSWORD } = req.body;
-        clg
         // Find the team by TEAM_MAIL
         const existingTeam = await Team.findOne({ TEAM_MAIL });
 
