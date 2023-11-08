@@ -107,7 +107,7 @@ app.post('/login', async (req, res) => {
         }
 
         // If credentials are valid, generate a JWT
-        const token = jwt.sign({ TEAM_MAIL: existingTeam.TEAM_MAIL }, JWT_SECRET, {
+        const token = jwt.sign({}, JWT_SECRET, {
             expiresIn: '30d', // Token expiration time
         });
 
@@ -132,12 +132,12 @@ app.post("/getuserdata", async (req, res) => {
 
         // Verify and decode the JWT token
         const decodedToken = jwt.verify(token, JWT_SECRET);
-
+        
         // Assuming that TEAM_NAME is stored in the decoded token
-        const teamName = decodedToken.TEAM_NAME;
+        const teamMail = decodedToken.TEAM_MAIL;
 
         // Use async/await for database operations to simplify the code
-        const teamData = await Team.findOne({ TEAM_NAME: teamName });
+        const teamData = await Team.findOne({ TEAM_MAIL: teamMail });
 
         if (!teamData) {
             res.status(404).json({ message: 'Team not found' });
