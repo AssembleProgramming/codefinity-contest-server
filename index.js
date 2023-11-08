@@ -7,6 +7,7 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const { error } = require('console');
 const Team = require('./models/Team.js');
+const jwt = require('jsonwebtoken');
 
 /** ======================================================================
  * ?                    Services & Configuration
@@ -23,6 +24,7 @@ app.use(express.json());
 ====================================================================== */
 const PORT = process.env.PORT || 3000; // Use a default value (e.g., 3000) if PORT is not set in .env
 const MONGODB_URI = process.env.MONGODB_URI;
+const JWT_SECRET = process.env.JWT_SECRET;
 
 
 /** ======================================================================
@@ -104,8 +106,19 @@ app.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Incorrect password. Please check your credentials.' });
         }
 
-        // If credentials are valid, you can send a success response and maybe a token for authentication
-        res.status(200).json({ message: 'Login successful', team: existingTeam });
+        // Set the JWT in an HTTP-only cookie
+        res.cookie('access_token', token, {
+            httpOnly: true,
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days (in milliseconds)
+            secure: true, // Enable this on HTTPS
+        });
+
+        // If credentials are valid, generate a JWT
+        const token = jwt.sign({ TEAM_MAIL: existingTeam.TEAM_MAIL }, JWT_SECRET, {
+            expiresIn: '30d', // Token expiration time
+        });
+
+        res.status(200).json({ message: 'Login successful', team: token });
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ message: 'Login failed', error: error.message });
