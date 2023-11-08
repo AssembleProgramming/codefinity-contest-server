@@ -54,7 +54,7 @@ app.get("/", (req, res) => {
 app.post('/signup', async (req, res) => {
 
     try {
-        const { TEAM_NAME, TEAM_MAIL, PASSWORD } = req.body; // Assuming you're sending these values in the request body
+        const { TEAM_NAME, TEAM_MAIL, PASSWORD } = req.body;
         // Check if TEAM_NAME or TEAM_MAIL already exist
         const existingTeamByName = await Team.findOne({ TEAM_NAME });
         const existingTeamByMail = await Team.findOne({ TEAM_MAIL });
@@ -85,6 +85,33 @@ app.post('/signup', async (req, res) => {
         res.status(500).json({ message: 'Team registration failed', error: error.message });
     }
 });
+
+
+// Create a login route
+app.post('/login', async (req, res) => {
+    try {
+        const { TEAM_MAIL, PASSWORD } = req.body;
+        // Find the team by TEAM_MAIL
+        const existingTeam = await Team.findOne({ TEAM_MAIL });
+
+        if (!existingTeam) {
+            // Team with the provided TEAM_MAIL does not exist
+            return res.status(404).json({ message: 'Team not found. Please check your credentials.' });
+        }
+
+        if (existingTeam.PASSWORD !== PASSWORD) {
+            // Password does not match
+            return res.status(401).json({ message: 'Incorrect password. Please check your credentials.' });
+        }
+
+        // If credentials are valid, you can send a success response and maybe a token for authentication
+        res.status(200).json({ message: 'Login successful', team: existingTeam });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ message: 'Login failed', error: error.message });
+    }
+});
+
 
 // Define a route to get data where Registered is false
 app.get('/get-unregistered-teams', async (req, res) => {
