@@ -9,6 +9,7 @@ const { error } = require('console');
 const Team = require('./models/Team.js');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const path = require('path')
 
 /** ======================================================================
  * ?                    Services & Configuration
@@ -20,7 +21,8 @@ dotenv.config();
 app.use(cors());
 app.use(express.json());
 app.set("view engine", "ejs");
-app.use(express.urlencoded({ extended: false }))
+app.set('views', path.join(__dirname, 'views')); // Specify the views directory
+app.use(express.urlencoded({ extended: false }));
 
 /** ======================================================================
  * ?                    Environment Variables
