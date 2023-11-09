@@ -5,7 +5,6 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
-const { error } = require('console');
 const Team = require('./models/Team.js');
 const ContestRegister = require('./models/ContestRegister.js');
 const jwt = require('jsonwebtoken');
@@ -163,6 +162,19 @@ app.get('/get-registered-teams', async (req, res) => {
     }
 });
 
+// Define a route to get data of entire contest Register
+app.get('/get-contest-register', async (req, res) => {
+    try {
+        // Retrieve all documents from the collection
+        const allDocuments = await ContestRegister.find();
+
+        res.json({ allDocuments });
+    } catch (error) {
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+
 // Forgot password API
 app.post('/forgot-password', async (req, res) => {
     try {
@@ -285,7 +297,7 @@ app.post("/contest-registration", async (req, res) => {
             return res.status(200).json({ message: `This team is already registered.` });
         }
 
-        const existingLeader = await ContestRegister.findOne({LEADER_MAIL: LEADER_MAIL});
+        const existingLeader = await ContestRegister.findOne({ LEADER_MAIL: LEADER_MAIL });
         if (existingLeader) {
             return res.status(400).json({ message: `Team Leader's mail is already registered.` });
         }
