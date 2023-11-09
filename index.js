@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const { error } = require('console');
 const Team = require('./models/Team.js');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 
 /** ======================================================================
  * ?                    Services & Configuration
@@ -18,6 +19,8 @@ dotenv.config();
 
 app.use(cors());
 app.use(express.json());
+app.set("view engine", "ejs");
+app.use(express.urlencoded({ extended: false }))
 
 /** ======================================================================
  * ?                    Environment Variables
@@ -25,7 +28,8 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000; // Use a default value (e.g., 3000) if PORT is not set in .env
 const MONGODB_URI = process.env.MONGODB_URI;
 const JWT_SECRET = process.env.JWT_SECRET;
-
+const MAIL = process.env.MAIL;
+const MAIL_PASSWORD = process.env.MAIL_PASSWORD;
 
 /** ======================================================================
  * ?                    MongoDB connection
@@ -43,7 +47,7 @@ mongoose.connection.on('error', (err) => {
 });
 
 /** ======================================================================
- * ?                    Routes
+ * ?                          Routes
 ====================================================================== */
 // Test route
 app.get("/", (req, res) => {
@@ -138,7 +142,7 @@ app.post("/getuserdata", async (req, res) => {
             res.status(200).json({ team: teamData });
         }
     } catch (error) {
-        res.status(500).json({ message: 'An error occurred at server side'});
+        res.status(500).json({ message: 'An error occurred at server side' });
     }
 });
 
@@ -156,6 +160,105 @@ app.get('/get-unregistered-teams', async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch unregistered teams', error: error.message });
     }
 });
+
+// Forgot password API
+app.post('/forgot-password', async (req, res) => {
+    try {
+        const { TEAM_MAIL } = req.body;
+        // Find the team by TEAM_MAIL
+        const existingTeam = await Team.findOne({ TEAM_MAIL });
+        if (!existingTeam) {
+            // Team with the provided TEAM_MAIL does not exist
+            return res.status(404).json({ message: 'Team not found. Please check entered TEAM_MAIL.' });
+        }
+
+        // We will create a secret key
+        const secret_key = JWT_SECRET + existingTeam.PASSWORD;
+
+        const token = jwt.sign({ TEAM_MAIL: existingTeam.TEAM_MAIL, ID: existingTeam._id }, secret_key, {
+            expiresIn: '5m'
+        });
+
+        const password_reset_link = `https://codefinity-api.vercel.app/reset-password/${existingTeam._id}/${token}`;
+
+        var transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: MAIL,
+                pass: MAIL_PASSWORD
+            }
+        });
+
+        var mailOptions = {
+            from: 'assembleprogramming@gmail.com',
+            to: TEAM_MAIL,
+            subject: 'Sending Password Reset Link',
+            text: `Use this link to reset your password ${password_reset_link}`
+        };
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
+
+        return res.status(200).json({ message: "Password reset link has been sent to your team Email." });
+    }
+    catch (error) {
+        return res.status(500).json({ message: "A network error has occurred, please try again later." });
+    }
+});
+
+// Reset password API
+app.get("/reset-password/:id/:token", async (req, res) => {
+    const { id, token } = req.params;
+    const existingTeam = await Team.findOne({ _id: id });
+    if (!existingTeam) {
+        // Team with the provided TEAM_MAIL does not exist
+        return res.status(404).json({ message: 'Team not found. Please check entered TEAM_MAIL.' });
+    }
+
+    // We will create a secret key
+    const secret_key = JWT_SECRET + existingTeam.PASSWORD;
+    try {
+        const isValidToken = jwt.verify(token, secret_key);
+        res.render("index", { email: isValidToken.TEAM_MAIL });
+    }
+    catch (error) {
+        return res.status(404).json({ message: 'Credentials are not verified...' });
+    }
+})
+
+// Reset password API POST
+app.post("/reset-password/:id/:token", async (req, res) => {
+    const { id, token } = req.params;
+    const { password } = req.body;
+
+    const existingTeam = await Team.findOne({ _id: id });
+    if (!existingTeam) {
+        // Team with the provided TEAM_MAIL does not exist
+        return res.status(404).json({ message: 'Team not found. Please check entered TEAM_MAIL.' });
+    }
+
+    // We will create a secret key
+    const secret_key = JWT_SECRET + existingTeam.PASSWORD;
+    try {
+        const isValidToken = jwt.verify(token, secret_key);
+        await Team.updateOne({
+            _id: id
+        }, {
+            $set: {
+                PASSWORD: password
+            }
+        });
+        return res.render("success");
+    }
+    catch (error) {
+        return res.render("failure");
+    }
+})
 
 /** ======================================================================
  * ?                    Run the server
