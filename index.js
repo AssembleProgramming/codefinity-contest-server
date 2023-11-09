@@ -7,6 +7,7 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const { error } = require('console');
 const Team = require('./models/Team.js');
+const ContestRegister = require('./models/ContestRegister.js');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const path = require('path')
@@ -61,7 +62,6 @@ app.get("/", (req, res) => {
 
 // Create a sign-up route
 app.post('/signup', async (req, res) => {
-
     try {
         const { TEAM_NAME, TEAM_MAIL, PASSWORD } = req.body;
         // Check if TEAM_NAME or TEAM_MAIL already exist
@@ -150,17 +150,16 @@ app.post("/getuserdata", async (req, res) => {
 });
 
 
-// Define a route to get data where Registered is false
-app.get('/get-unregistered-teams', async (req, res) => {
+// Define a route to get data where Registered is true
+app.get('/get-registered-teams', async (req, res) => {
     try {
-        // Find all teams where Registered is false
-        const unregisteredTeams = await Team.find({ Registered: false });
+        // Find all teams where Registered is true
+        const registeredTeams = await Team.find({ Registered: true });
 
-        // Send the unregistered teams as JSON response
-        res.json({ unregisteredTeams });
+        // Send the registered teams as JSON response
+        res.json({ registeredTeams });
     } catch (error) {
-        console.error('Error fetching unregistered teams:', error);
-        res.status(500).json({ message: 'Failed to fetch unregistered teams', error: error.message });
+        res.status(500).json({ message: 'Failed to fetch registered teams', error: error.message });
     }
 });
 
@@ -262,6 +261,56 @@ app.post("/reset-password/:id/:token", async (req, res) => {
         return res.render("failure");
     }
 })
+
+
+// register for contest
+app.post("/contest-registration", async (req, res) => {
+    try {
+        const {
+            TEAM_MAIL, TEAM_ID,
+            LEADER_NAME, LEADER_MAIL, LEADER_PHONE, LEADER_YEAR, LEADER_DEPT, LEADER_DIV, LEADER_RNO,
+            MEMBER_NAME, MEMBER_MAIL, MEMBER_PHONE, MEMBER_YEAR, MEMBER_DEPT, MEMBER_DIV, MEMBER_RNO,
+            FAV_AVENGER
+        } = req.body;
+
+
+        const numberOfRegisteredTeams = await ContestRegister.countDocuments();
+        if (numberOfRegisteredTeams === 100) {
+            return res.status(400).json({ message: `Sorry, Contest registrations are full & we're not accepting new entries.` });
+        }
+
+        // If team has already registered
+        const existingRegistration = await ContestRegister.findOne({ TEAM_ID: TEAM_ID });
+        if (existingRegistration) {
+            return res.status(200).json({ message: `This team is already registered.` });
+        }
+
+        // Register the current team
+        await Team.updateOne({
+            _id: TEAM_ID
+        }, {
+            $set: {
+                Registered: true
+            }
+        });
+
+        // Create a new Team document to register
+        const newRegisterTeam = new ContestRegister({
+            TEAM_MAIL, TEAM_ID,
+            LEADER_NAME, LEADER_MAIL, LEADER_PHONE, LEADER_YEAR, LEADER_DEPT, LEADER_DIV, LEADER_RNO,
+            MEMBER_NAME, MEMBER_MAIL, MEMBER_PHONE, MEMBER_YEAR, MEMBER_DEPT, MEMBER_DIV, MEMBER_RNO,
+            FAV_AVENGER
+        });
+
+        // Save the new team to the database
+        const savedNewRegisterTeam = await newRegisterTeam.save();
+
+        res.status(201).json({ message: 'Team registered successfully' });
+    } catch (error) {
+        console.error('Team registration error:', error);
+        res.status(500).json({ message: 'Team registration failed' });
+    }
+});
 
 /** ======================================================================
  * ?                    Run the server
