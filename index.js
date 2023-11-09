@@ -31,6 +31,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const MAIL = process.env.MAIL;
 const MAIL_PASSWORD = process.env.MAIL_PASSWORD;
 
+
 /** ======================================================================
  * ?                    MongoDB connection
 ====================================================================== */
