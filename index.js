@@ -9,7 +9,7 @@ const Team = require('./models/Team.js');
 const ContestRegister = require('./models/ContestRegister.js');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
-const path = require('path')
+const path = require('path');
 
 /** ======================================================================
  * ?                    Services & Configuration
@@ -148,19 +148,6 @@ app.post("/getuserdata", async (req, res) => {
     }
 });
 
-
-// Define a route to get data where Registered is true
-app.get('/get-registered-teams', async (req, res) => {
-    try {
-        // Find all teams where Registered is true
-        const registeredTeams = await Team.find({ Registered: true });
-
-        // Send the registered teams as JSON response
-        res.json({ registeredTeams });
-    } catch (error) {
-        res.status(500).json({ message: 'Failed to fetch registered teams', error: error.message });
-    }
-});
 
 // Define a route to get data of entire contest Register
 app.get('/get-contest-register', async (req, res) => {
