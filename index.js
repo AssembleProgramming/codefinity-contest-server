@@ -201,13 +201,13 @@ app.post('/forgot-password', async (req, res) => {
 
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
-                console.log(error);
+                return res.status(500).json({ message: "A network error has occurred, please try again later." });
             } else {
                 console.log('Email sent: ' + info.response);
+                return res.status(200).json({ message: "Password reset link has been sent to your team Email." });
             }
         });
 
-        return res.status(200).json({ message: "Password reset link has been sent to your team Email." });
     }
     catch (error) {
         return res.status(500).json({ message: "A network error has occurred, please try again later." });
