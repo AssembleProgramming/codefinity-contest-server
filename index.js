@@ -285,6 +285,11 @@ app.post("/contest-registration", async (req, res) => {
             return res.status(200).json({ message: `This team is already registered.` });
         }
 
+        const existingLeader = await ContestRegister.findOne({LEADER_MAIL: LEADER_MAIL});
+        if (existingLeader) {
+            return res.status(400).json({ message: `Team Leader's mail is already registered.` });
+        }
+
         // Register the current team
         await Team.updateOne({
             _id: TEAM_ID
