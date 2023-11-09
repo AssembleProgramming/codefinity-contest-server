@@ -32,6 +32,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 const JWT_SECRET = process.env.JWT_SECRET;
 const MAIL = process.env.MAIL;
 const MAIL_PASSWORD = process.env.MAIL_PASSWORD;
+const SERVER_LINK = process.env.SERVER_LINK
 
 
 /** ======================================================================
@@ -180,7 +181,7 @@ app.post('/forgot-password', async (req, res) => {
             expiresIn: '5m'
         });
 
-        const password_reset_link = `https://codefinity-api.vercel.app/reset-password/${existingTeam._id}/${token}`;
+        const password_reset_link = `${SERVER_LINK}/reset-password/${existingTeam._id}/${token}`;
 
         var transporter = nodemailer.createTransport({
             service: 'gmail',
