@@ -138,7 +138,7 @@ app.post("/getuserdata", async (req, res) => {
             res.status(200).json({ team: teamData });
         }
     } catch (error) {
-        res.status(500).json({ message: 'An error occurred', error: error.message });
+        res.status(500).json({ message: 'An error occurred at server side'});
     }
 });
 
