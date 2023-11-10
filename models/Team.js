@@ -20,6 +20,14 @@ const teamSchema = new Schema({
     Registered: {
         type: Boolean,
         default: false,
+    },
+    TEAM_NUMBER: {
+        type: Number,
+        required: true
+    },
+    TEAM_GRP_NO:{
+        type:Number,
+        required: true
     }
 });
 

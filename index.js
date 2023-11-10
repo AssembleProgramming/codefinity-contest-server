@@ -6,7 +6,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const Team = require('./models/Team.js');
-const ContestRegister = require('./models/ContestRegister.js');
+const ContestRegister = require('./models/ContestRegister.js')
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const path = require('path');
@@ -63,7 +63,7 @@ app.get("/", (req, res) => {
 // Create a sign-up route
 app.post('/signup', async (req, res) => {
     try {
-        const { TEAM_NAME, TEAM_MAIL, PASSWORD } = req.body;
+        const { TEAM_NAME, TEAM_MAIL, PASSWORD, TEAM_GRP_NO } = req.body;
         // Check if TEAM_NAME or TEAM_MAIL already exist
         const existingTeamByName = await Team.findOne({ TEAM_NAME });
         const existingTeamByMail = await Team.findOne({ TEAM_MAIL });
@@ -78,11 +78,18 @@ app.post('/signup', async (req, res) => {
             return res.status(400).json({ message: 'An account with the provided TEAM_EMAIL already exists.' });
         }
 
+
+        let numberOfSignedUpTeams = await Team.countDocuments();
+        numberOfSignedUpTeams += 1;
+
+
         // Create a new Team document
         const newTeam = new Team({
             TEAM_NAME,
             TEAM_MAIL,
             PASSWORD,
+            TEAM_NUMBER: numberOfSignedUpTeams,
+            TEAM_GRP_NO
         });
 
         // Save the new team to the database
@@ -270,6 +277,7 @@ app.post("/contest-registration", async (req, res) => {
             TEAM_MAIL, TEAM_ID,
             LEADER_NAME, LEADER_MAIL, LEADER_PHONE, LEADER_YEAR, LEADER_DEPT, LEADER_DIV, LEADER_RNO,
             MEMBER_NAME, MEMBER_MAIL, MEMBER_PHONE, MEMBER_YEAR, MEMBER_DEPT, MEMBER_DIV, MEMBER_RNO,
+            PAYMENT_METHOD, TRANSACTION_ID,
             FAV_AVENGER
         } = req.body;
 
@@ -290,6 +298,11 @@ app.post("/contest-registration", async (req, res) => {
             return res.status(400).json({ message: `Team Leader's mail is already registered.` });
         }
 
+        const existingTransactionID = await ContestRegister.findOne({ TRANSACTION_ID: TRANSACTION_ID });
+        if (existingTransactionID) {
+            return res.status(400).json({ message: `Invalid transaction ID.` });
+        }
+
         // Register the current team
         await Team.updateOne({
             _id: TEAM_ID
@@ -304,6 +317,7 @@ app.post("/contest-registration", async (req, res) => {
             TEAM_MAIL, TEAM_ID,
             LEADER_NAME, LEADER_MAIL, LEADER_PHONE, LEADER_YEAR, LEADER_DEPT, LEADER_DIV, LEADER_RNO,
             MEMBER_NAME, MEMBER_MAIL, MEMBER_PHONE, MEMBER_YEAR, MEMBER_DEPT, MEMBER_DIV, MEMBER_RNO,
+            PAYMENT_METHOD, TRANSACTION_ID,
             FAV_AVENGER
         });
 
