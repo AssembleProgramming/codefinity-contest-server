@@ -33,7 +33,9 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const MAIL = process.env.MAIL;
 const MAIL_PASSWORD = process.env.MAIL_PASSWORD;
 const SERVER_LINK = process.env.SERVER_LINK
-
+const QUESTION_ONE_MARKS = 10;
+const QUESTION_TWO_MARKS = 20;
+const QUESTION_THREE_MARKS = 30;
 
 /** ======================================================================
  * ?                    MongoDB connection
@@ -328,6 +330,164 @@ app.post("/contest-registration", async (req, res) => {
     } catch (error) {
         console.error('Team registration error:', error);
         res.status(500).json({ message: 'Team registration failed' });
+    }
+});
+
+
+app.post("/submit-question-one", async (req, res) => {
+    try {
+        const { TEAM_MAIL, LAST_SUBMISSION_TIME_STAMP } = req.body;
+        const teamEntry = await Team.findOne({ TEAM_MAIL: TEAM_MAIL });
+        const contestRegisterEntry = await ContestRegister.findOne({ TEAM_MAIL: TEAM_MAIL });
+        if (!teamEntry) {
+            return res.status(400).json({ message: `Team is not authenticated` });
+        }
+        if (!contestRegisterEntry) {
+            return res.status(400).json({ message: `Team is not authenticated` });
+        }
+        if (teamEntry.QUESTION_ONE_STATUS === true) {
+            return res.status(400).json({ message: `Question is already submitted.` });
+        }
+
+        let usersContestScore = teamEntry.CONTEST_SCORE;
+        usersContestScore += QUESTION_ONE_MARKS;
+
+        // Update team contest status
+        await Team.updateOne({
+            TEAM_MAIL: TEAM_MAIL
+        }, {
+            $set: {
+                QUESTION_ONE_STATUS: true,
+                CONTEST_SCORE: usersContestScore,
+                LAST_SUBMISSION_TIME_STAMP: LAST_SUBMISSION_TIME_STAMP
+            }
+        });
+
+        // Update contest Register
+        await ContestRegister.updateOne({
+            TEAM_MAIL: TEAM_MAIL
+        }, {
+            $set: {
+                QUESTION_ONE_STATUS: true,
+                CONTEST_SCORE: usersContestScore,
+                LAST_SUBMISSION_TIME_STAMP: LAST_SUBMISSION_TIME_STAMP
+            }
+        })
+
+        res.status(201).json({ message: 'Submission Successful!!!' });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Submission Failed!!!' });
+    }
+})
+
+app.post("/submit-question-two", async (req, res) => {
+    try {
+        const { TEAM_MAIL, LAST_SUBMISSION_TIME_STAMP } = req.body;
+        const teamEntry = await Team.findOne({ TEAM_MAIL: TEAM_MAIL });
+        const contestRegisterEntry = await ContestRegister.findOne({ TEAM_MAIL: TEAM_MAIL });
+        if (!teamEntry) {
+            return res.status(400).json({ message: `Team is not authenticated` });
+        }
+        if (!contestRegisterEntry) {
+            return res.status(400).json({ message: `Team is not authenticated` });
+        }
+        if (teamEntry.QUESTION_TWO_STATUS === true) {
+            return res.status(400).json({ message: `Question is already submitted.` });
+        }
+
+        let usersContestScore = teamEntry.CONTEST_SCORE;
+        usersContestScore += QUESTION_TWO_MARKS;
+
+        // Update team contest status
+        await Team.updateOne({
+            TEAM_MAIL: TEAM_MAIL
+        }, {
+            $set: {
+                QUESTION_TWO_STATUS: true,
+                CONTEST_SCORE: usersContestScore,
+                LAST_SUBMISSION_TIME_STAMP: LAST_SUBMISSION_TIME_STAMP
+            }
+        });
+
+        // Update contest Register
+        await ContestRegister.updateOne({
+            TEAM_MAIL: TEAM_MAIL
+        }, {
+            $set: {
+                QUESTION_TWO_STATUS: true,
+                CONTEST_SCORE: usersContestScore,
+                LAST_SUBMISSION_TIME_STAMP: LAST_SUBMISSION_TIME_STAMP
+            }
+        })
+
+        res.status(201).json({ message: 'Submission Successful!!!' });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Submission Failed!!!' });
+    }
+})
+
+
+app.post("/submit-question-three", async (req, res) => {
+    try {
+        const { TEAM_MAIL, LAST_SUBMISSION_TIME_STAMP } = req.body;
+        const teamEntry = await Team.findOne({ TEAM_MAIL: TEAM_MAIL });
+        const contestRegisterEntry = await ContestRegister.findOne({ TEAM_MAIL: TEAM_MAIL });
+        if (!teamEntry) {
+            return res.status(400).json({ message: `Team is not authenticated` });
+        }
+        if (!contestRegisterEntry) {
+            return res.status(400).json({ message: `Team is not authenticated` });
+        }
+        if (teamEntry.QUESTION_THREE_STATUS === true) {
+            return res.status(400).json({ message: `Question is already submitted.` });
+        }
+
+        let usersContestScore = teamEntry.CONTEST_SCORE;
+        usersContestScore += QUESTION_THREE_MARKS;
+
+        // Update team contest status
+        await Team.updateOne({
+            TEAM_MAIL: TEAM_MAIL
+        }, {
+            $set: {
+                QUESTION_THREE_STATUS: true,
+                CONTEST_SCORE: usersContestScore,
+                LAST_SUBMISSION_TIME_STAMP: LAST_SUBMISSION_TIME_STAMP
+            }
+        });
+
+        // Update contest Register
+        await ContestRegister.updateOne({
+            TEAM_MAIL: TEAM_MAIL
+        }, {
+            $set: {
+                QUESTION_THREE_STATUS: true,
+                CONTEST_SCORE: usersContestScore,
+                LAST_SUBMISSION_TIME_STAMP: LAST_SUBMISSION_TIME_STAMP
+            }
+        })
+
+        res.status(201).json({ message: 'Submission Successful!!!' });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Submission Failed!!!' });
+    }
+})
+
+
+app.get("/contest-register-all", async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const perPage = 20;
+        const skip = (page - 1) * perPage;
+
+        const contestRegister = await ContestRegister.find().skip(skip).limit(perPage);
+
+        res.status(200).json({ teams: contestRegister });
+    } catch (error) {
+        res.status(500).json({ message: 'Server side Error' });
     }
 });
 

@@ -25,10 +25,31 @@ const teamSchema = new Schema({
         type: Number,
         required: true
     },
-    TEAM_GRP_NO:{
-        type:Number,
+    TEAM_GRP_NO: {
+        type: Number,
         required: true
-    }
+    },
+
+    CONTEST_SCORE: {
+        type: Number,
+        default: 0,
+    },
+    QUESTION_ONE_STATUS: {
+        type: Boolean,
+        default: false,
+    },
+    QUESTION_TWO_STATUS: {
+        type: Boolean,
+        default: false,
+    },
+    QUESTION_THREE_STATUS: {
+        type: Boolean,
+        default: false,
+    },
+    LAST_SUBMISSION_TIME_STAMP: {
+        type: Number,
+        default: Infinity,
+    },
 });
 
 const Team = mongoose.model('Team', teamSchema);
