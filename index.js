@@ -485,10 +485,10 @@ app.get("/contest-register-all", async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const perPage = 20;
         const skip = (page - 1) * perPage;
-
+        const numberOfRegisteredTeams = await ContestRegister.countDocuments();
         const contestRegister = await ContestRegister.find().skip(skip).limit(perPage);
 
-        res.status(200).json({ teams: contestRegister });
+        res.status(200).json({ teams: contestRegister, count: numberOfRegisteredTeams });
     } catch (error) {
         res.status(500).json({ message: 'Server side Error' });
     }
