@@ -314,7 +314,8 @@ app.post("/contest-registration", async (req, res) => {
             }
         });
 
-        const TEAM_NAME = await Team.findOne({ TEAM_ID: TEAM_ID }).TEAM_NAME;
+        const TEAM = await Team.findOne({ TEAM_MAIL: TEAM_MAIL });
+        const TEAM_NAME = TEAM.TEAM_NAME;
 
         // Create a new Team document to register
         const newRegisterTeam = new ContestRegister({
