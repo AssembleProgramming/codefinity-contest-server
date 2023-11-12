@@ -35,7 +35,7 @@ const MAIL_PASSWORD = process.env.MAIL_PASSWORD;
 const SERVER_LINK = process.env.SERVER_LINK
 const QUESTION_ONE_MARKS = 10;
 const QUESTION_TWO_MARKS = 20;
-const QUESTION_THREE_MARKS = 30;
+const QUESTION_THREE_MARKS = 20;
 
 /** ======================================================================
  * ?                    MongoDB connection
