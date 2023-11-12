@@ -13,6 +13,11 @@ const contestRegisterSchema = new Schema({
     required: true,
     unique: true,
   },
+  TEAM_NAME: {
+    type: String,
+    required: true,
+    unique: true,
+  },
 
 
 
