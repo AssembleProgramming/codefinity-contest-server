@@ -58,7 +58,7 @@ mongoose.connection.on('error', (err) => {
 // Test route
 app.get("/", (req, res) => {
     res.json({
-        "running": true
+        "status": "running"
     });
 });
 
