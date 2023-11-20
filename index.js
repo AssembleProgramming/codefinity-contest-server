@@ -285,7 +285,7 @@ app.post("/contest-registration", async (req, res) => {
 
 
         const numberOfRegisteredTeams = await ContestRegister.countDocuments();
-        if (numberOfRegisteredTeams === 100) {
+        if (numberOfRegisteredTeams >= 100) {
             return res.status(400).json({ message: `Sorry, Contest registrations are full & we're not accepting new entries.` });
         }
 
