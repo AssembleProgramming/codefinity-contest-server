@@ -20,7 +20,6 @@ const contestRegisterSchema = new Schema({
   },
 
 
-
   LEADER_NAME: {
     type: String,
     required: true,
@@ -34,51 +33,12 @@ const contestRegisterSchema = new Schema({
     type: String,
     required: true,
   },
-  LEADER_YEAR: {
-    type: String,
-    required: true,
-  },
-  LEADER_DEPT: {
-    type: String,
-    required: true,
-  },
-  LEADER_DIV: {
-    type: String,
-    required: true,
-  },
-  LEADER_RNO: {
+  LEADER_LOCATION: {
     type: String,
     required: true,
   },
 
-
-
-
-  MEMBER_NAME: {
-    type: String,
-  },
-  MEMBER_MAIL: {
-    type: String,
-  },
-  MEMBER_PHONE: {
-    type: String,
-  },
-  MEMBER_YEAR: {
-    type: String,
-  },
-  MEMBER_DEPT: {
-    type: String,
-  },
-  MEMBER_DIV: {
-    type: String,
-  },
-  MEMBER_RNO: {
-    type: String,
-  },
-
-
-
-
+  
   PAYMENT_METHOD: {
     type: String,
     required: true,
@@ -90,13 +50,9 @@ const contestRegisterSchema = new Schema({
   },
 
 
-
-
-
   FAV_AVENGER: {
     type: String,
   },
-
 
   
   CONTEST_SCORE: {
