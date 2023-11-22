@@ -10,6 +10,7 @@ const ContestRegister = require('./models/ContestRegister.js')
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const path = require('path');
+const registration_mail = require('./Mail.js');
 
 /** ======================================================================
  * ?                    Services & Configuration
@@ -72,12 +73,12 @@ app.post('/signup', async (req, res) => {
 
         if (existingTeamByName) {
             // Team with the same TEAM_NAME already exists
-            return res.status(400).json({ message: 'An account with the provided TEAM_NAME already exists.' });
+            return res.status(400).json({ message: 'An user with the specified user name already exists. Please choose a different user name.' });
         }
 
         if (existingTeamByMail) {
             // Team with the same TEAM_MAIL already exists
-            return res.status(400).json({ message: 'An account with the provided TEAM_EMAIL already exists.' });
+            return res.status(400).json({ message: 'An account with the provided email already exists.' });
         }
 
 
@@ -97,10 +98,10 @@ app.post('/signup', async (req, res) => {
         // Save the new team to the database
         const savedTeam = await newTeam.save();
 
-        res.status(201).json({ message: 'Team registered successfully', team: savedTeam });
+        res.status(201).json({ message: 'User registered successfully.', team: savedTeam });
     } catch (error) {
-        console.error('Team registration error:', error);
-        res.status(500).json({ message: 'Team registration failed', error: error.message });
+        console.error('User registration error:', error);
+        res.status(500).json({ message: 'User registration failed', error: error.message });
     }
 });
 
@@ -114,7 +115,7 @@ app.post('/login', async (req, res) => {
 
         if (!existingTeam) {
             // Team with the provided TEAM_MAIL does not exist
-            return res.status(404).json({ message: 'Team not found. Please check your credentials.' });
+            return res.status(404).json({ message: 'User not found. Please check your credentials.' });
         }
 
         if (existingTeam.PASSWORD !== PASSWORD) {
@@ -127,10 +128,10 @@ app.post('/login', async (req, res) => {
             expiresIn: '30d', // Token expiration time
         });
 
-        res.status(200).json({ message: 'Login successful', team: token });
+        res.status(200).json({ message: 'Login successful!!!', team: token });
     } catch (error) {
         console.error('Login error:', error);
-        res.status(500).json({ message: 'Login failed', error: error.message });
+        res.status(500).json({ message: 'Login failed!!!', error: error.message });
     }
 });
 
@@ -149,12 +150,12 @@ app.post("/getuserdata", async (req, res) => {
         const teamData = await Team.findOne({ TEAM_MAIL: teamMail });
 
         if (!teamData) {
-            res.status(404).json({ message: 'Team not found' });
+            res.status(404).json({ message: 'User not found.' });
         } else {
             res.status(200).json({ team: teamData });
         }
     } catch (error) {
-        res.status(500).json({ message: 'An error occurred at server side' });
+        res.status(500).json({ message: 'An error occurred at server side.' });
     }
 });
 
@@ -167,7 +168,7 @@ app.get('/get-contest-register', async (req, res) => {
 
         res.json({ allDocuments });
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' });
+        res.status(500).json({ message: 'Internal Server Error.' });
     }
 });
 
@@ -180,7 +181,7 @@ app.post('/forgot-password', async (req, res) => {
         const existingTeam = await Team.findOne({ TEAM_MAIL });
         if (!existingTeam) {
             // Team with the provided TEAM_MAIL does not exist
-            return res.status(404).json({ message: 'Team not found. Please check entered TEAM_MAIL.' });
+            return res.status(404).json({ message: 'User not found. Please check entered email.' });
         }
 
         // We will create a secret key
@@ -228,7 +229,7 @@ app.get("/reset-password/:id/:token", async (req, res) => {
     const existingTeam = await Team.findOne({ _id: id });
     if (!existingTeam) {
         // Team with the provided TEAM_MAIL does not exist
-        return res.status(404).json({ message: 'Team not found. Please check entered TEAM_MAIL.' });
+        return res.status(404).json({ message: 'User not found. Please check entered email.' });
     }
 
     // We will create a secret key
@@ -238,7 +239,7 @@ app.get("/reset-password/:id/:token", async (req, res) => {
         res.render("index", { email: isValidToken.TEAM_MAIL });
     }
     catch (error) {
-        return res.status(404).json({ message: 'Credentials are not verified...' });
+        return res.status(404).json({ message: 'Credentials are not verified!!!' });
     }
 })
 
@@ -250,7 +251,7 @@ app.post("/reset-password/:id/:token", async (req, res) => {
     const existingTeam = await Team.findOne({ _id: id });
     if (!existingTeam) {
         // Team with the provided TEAM_MAIL does not exist
-        return res.status(404).json({ message: 'Team not found. Please check entered TEAM_MAIL.' });
+        return res.status(404).json({ message: 'User not found. Please check entered email.' });
     }
 
     // We will create a secret key
@@ -291,12 +292,12 @@ app.post("/contest-registration", async (req, res) => {
         // If team has already registered
         const existingRegistration = await ContestRegister.findOne({ TEAM_ID: TEAM_ID });
         if (existingRegistration) {
-            return res.status(200).json({ message: `This team is already registered.` });
+            return res.status(200).json({ message: `This user is already registered.` });
         }
 
         const existingLeader = await ContestRegister.findOne({ LEADER_MAIL: LEADER_MAIL });
         if (existingLeader) {
-            return res.status(400).json({ message: `Team Leader's mail is already registered.` });
+            return res.status(400).json({ message: `User mail is already registered.` });
         }
 
         const existingTransactionID = await ContestRegister.findOne({ TRANSACTION_ID: TRANSACTION_ID });
@@ -327,10 +328,37 @@ app.post("/contest-registration", async (req, res) => {
         // Save the new team to the database
         const savedNewRegisterTeam = await newRegisterTeam.save();
 
-        res.status(201).json({ message: 'Team registered successfully' });
+
+        var transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: MAIL,
+                pass: MAIL_PASSWORD
+            }
+        });
+
+        var mailOptions = {
+            from: 'assembleprogramming@gmail.com',
+            to: LEADER_MAIL,
+            subject: `Congratulations! You're Registered for the Codefinity Challenge.`,
+            text: `Dear ${TEAM_NAME},
+${registration_mail}
+            `
+        };
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                return res.status(500).json({ message: "A network error has occurred, please try again later." });
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
+
+        res.status(201).json({ message: 'User registered successfully' });
+
     } catch (error) {
-        console.error('Team registration error:', error);
-        res.status(500).json({ message: 'Team registration failed' });
+        console.error('User registration error:', error);
+        res.status(500).json({ message: 'User registration failed' });
     }
 });
 
@@ -341,10 +369,10 @@ app.post("/submit-question-one", async (req, res) => {
         const teamEntry = await Team.findOne({ TEAM_MAIL: TEAM_MAIL });
         const contestRegisterEntry = await ContestRegister.findOne({ TEAM_MAIL: TEAM_MAIL });
         if (!teamEntry) {
-            return res.status(400).json({ message: `Team is not authenticated` });
+            return res.status(400).json({ message: `User is not authenticated` });
         }
         if (!contestRegisterEntry) {
-            return res.status(400).json({ message: `Team is not authenticated` });
+            return res.status(400).json({ message: `User is not authenticated` });
         }
         if (teamEntry.QUESTION_ONE_STATUS === true) {
             return res.status(400).json({ message: `Question is already submitted.` });
@@ -388,10 +416,10 @@ app.post("/submit-question-two", async (req, res) => {
         const teamEntry = await Team.findOne({ TEAM_MAIL: TEAM_MAIL });
         const contestRegisterEntry = await ContestRegister.findOne({ TEAM_MAIL: TEAM_MAIL });
         if (!teamEntry) {
-            return res.status(400).json({ message: `Team is not authenticated` });
+            return res.status(400).json({ message: `User is not authenticated` });
         }
         if (!contestRegisterEntry) {
-            return res.status(400).json({ message: `Team is not authenticated` });
+            return res.status(400).json({ message: `User is not authenticated` });
         }
         if (teamEntry.QUESTION_TWO_STATUS === true) {
             return res.status(400).json({ message: `Question is already submitted.` });
@@ -436,10 +464,10 @@ app.post("/submit-question-three", async (req, res) => {
         const teamEntry = await Team.findOne({ TEAM_MAIL: TEAM_MAIL });
         const contestRegisterEntry = await ContestRegister.findOne({ TEAM_MAIL: TEAM_MAIL });
         if (!teamEntry) {
-            return res.status(400).json({ message: `Team is not authenticated` });
+            return res.status(400).json({ message: `User is not authenticated` });
         }
         if (!contestRegisterEntry) {
-            return res.status(400).json({ message: `Team is not authenticated` });
+            return res.status(400).json({ message: `User is not authenticated` });
         }
         if (teamEntry.QUESTION_THREE_STATUS === true) {
             return res.status(400).json({ message: `Question is already submitted.` });
